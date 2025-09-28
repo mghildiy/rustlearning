@@ -1,8 +1,18 @@
+#![allow(warnings)]
+
 use std::io;
 use rand::Rng;
 use std::cmp::Ordering;
+use std::collections::HashMap;
+use rand::prelude::*;
+use crate::collections::hashmapling::play_with_hashmap;
+use crate::collections::stringling::play_with_string;
+use crate::collections::vectorling::play_with_vectors;
+use crate::errors::panicky::panicking;
 
 pub mod collections;
+pub mod parsing;
+mod errors;
 
 fn main() {
     // guessingGame();
@@ -11,8 +21,271 @@ fn main() {
     //controlFlow();
     //structs();
 
-    use crate::collections::examples::*;
-    vectorDemo();
+    //use crate::collections::examples::*;
+    //vectorDemo();
+
+    //use crate::parsing::Parser::Message;
+    //let message = Message::from(String::from(""));
+    //message.parse();
+
+    //loopArray();
+
+    //ownershipAndBorrowing();
+    //lifetimes();
+    //sliceDemo();
+    //stringDemo();
+    //function1();
+    //references();
+
+    println!("**************play with vector**************");
+    play_with_vectors();
+    println!("**************play with string**************");
+    play_with_string();
+    println!("**************play with hashmaps**************");
+    play_with_hashmap();
+    println!("**************play with panics**************");
+    panicking();
+}
+
+type Table = HashMap<String, Vec<String>>;
+fn references() {
+    let mut worksByArtists = Table::new();
+    worksByArtists.insert("Gesualdo".to_string(),
+                 vec!["many madrigals".to_string(),
+                      "Tenebrae Responsoria".to_string()]);
+    worksByArtists.insert("Caravaggio".to_string(),
+                 vec!["The Musicians".to_string(),
+                      "The Calling of St. Matthew".to_string()]);
+    worksByArtists.insert("Cellini".to_string(),
+                 vec!["Perseus with the head of Medusa".to_string(),
+                      "a salt cellar".to_string()]);
+    display(&mut worksByArtists);
+    assert_eq!(worksByArtists["Caravaggio"][0], "The Musicians!");
+
+    let x = 4;
+    let y = &x;
+    assert!(*y == 4);
+
+    let mut x = 4;
+    let y = &mut x;
+    *y += 3;
+    //assert!(x == 7);
+    //assert!(*y == 7);
+    println!("{}", y);
+
+    let r = &factorial(6);
+    assert_eq!(r + 1009, 1729);
+
+    {
+        let mut r= &100;;
+        {
+            let x = 1;
+            r = &x;
+        }
+        //assert_eq!(*r, 1); // bad: reads memory `x` used to occupy
+    }
+
+    let myStrings = vec!["Hello".to_string(), "World!".to_string()];
+    for s in &myStrings {
+        println!("String {:?} is at address {:p} with length {}", *s, s, s.len())
+    }
+
+    let myStrs = vec!["Hello", "World!"];
+    for s in myStrs {
+        println!("String {:?} is at address {:p} with length {}", s, s, s.len())
+    }
+
+    let s = String::from("hello world");
+    let hello = &s[0..5];
+    let world = &s[6..11];
+
+    let numVec = vec![1,2,3,4,5];
+    let first3 = &numVec[0..3];
+    for num in first3 {
+        println!("{} {:p}", num, num);
+    }
+}
+
+fn smallest(v: &[i32]) -> &i32 {
+    let mut s = &v[0];
+    for r in &v[1..] {
+        if *r < *s { s = r; }
+    }
+    s
+}
+
+fn factorial(n: usize) -> usize {
+    (1..n+1).product()
+}
+
+fn display(table: &mut Table) {
+    for (artist, works) in  table {
+        println!("Works by artist {}:", artist);
+        for mut work in works {
+            work.push('!');
+            println!("               {work}");
+        }
+    }
+}
+
+fn function1() {
+    let mut padovan = vec![1,1,1]; // allocated here
+    println!("{}", padovan.capacity());
+    println!("{}", padovan.len());
+    for i in 3..10 {
+        let next = padovan[i-3] + padovan[i-2];
+        padovan.push(next);
+        println!("Capacity: {}", padovan.capacity());
+    }
+    println!("P(1..10) = {:?}", padovan);
+    println!("{}", padovan.capacity());
+    println!("{}", padovan.len());
+
+    {
+        let point = Box::new((0.625, 0.5)); // point allocated here
+        let label = format!("{:?}", point); // label allocated here
+        assert_eq!(label, "(0.625, 0.5)");
+    }
+
+    let v = vec!["liberté".to_string(), "égalité".to_string(), "fraternité".to_string()];
+    for mut s in v { // v moves out
+        s.push('!');
+        println!("{}", s);
+    }
+
+    //println!("{}", v[0]); illegal as v already moved out
+
+    let mut s = "Govinda".to_string();
+    s = "Siddhartha".to_string();
+
+    let mut v = Vec::new();
+    for i in 101 .. 106 {
+        v.push(i.to_string());
+    }
+}
+
+fn stringDemo() {
+    println!("It was a bright, cold day in \nApril, and \
+    there were four of us—\
+    more or less.");
+
+    let default_win_install_path = r"C:\Program Files\Gorillas";
+    println!("{default_win_install_path}");
+
+    let method = b"GET"; // byte string
+    for elem in method {
+        println!("{elem}")
+    }
+
+    let noodles = "noodles".to_string();
+    let oodles = &noodles[1..];
+    /*for elem in oodles {
+        println!("{}", elem)
+    }*/
+    let poodles = "􀀀_􀀀";
+
+    println!("{}", noodles.chars().count());
+    println!("{}", noodles.len());
+    println!("{}", oodles.len());
+    println!("{}", poodles.chars().count());
+    println!("{}", poodles.len());
+
+    let mut hw = "Hello World".to_string();
+    hw.push('!');
+    println!("{}", hw);
+
+    let hwref = &hw[0..];
+    assert!(hw == "Hello World!");
+
+    assert!("peanut".contains("nut"));
+}
+
+fn sliceDemo() {
+    let myArr = [1,2,3,4];
+    let myVec = vec![-1,-2,-3,-4];
+
+    printSlice(&myArr);
+    printSlice(&myVec);
+}
+
+fn printSlice(mySlice: &[i32]) {
+    for elem in mySlice {
+        println!("{}", elem);
+    }
+}
+
+fn lifetimes() {
+    let mut a1 = Box::new(2);
+    let mut b1 = &a1;
+    //a1 = Box::new(22); //illegal assignment as value is already borrowed
+    println!("{b1}");
+    a1 = Box::new(22); // this would make b1 invalid, and hence end its lifecycle
+    b1 = &a1; // new lifecycle starts for b1
+    println!("{b1}");
+
+    let mut x = Box::new(42);
+    let mut z = &x; // 'a
+    for i in 0..100 {
+        println!("{}", z); // 'a
+        x = Box::new(i);
+        z = &x; // 'a
+    }
+    println!("{}", z); // 'a
+}
+
+fn ownershipAndBorrowing() {
+    let mut x = 7;
+    if rand::random() {
+        x = 4;
+    } else {
+        let y = &x; // value borrowed
+        //x = 4; //not allowed as value already borrowed
+        let z = 3 + *y;
+    }
+    //println!("{z}");
+
+    let mut a = 6;
+    let b = & a;
+    //let c = &mut a;
+    //a = 8;
+    //*c = 77;
+    println!("{b}");
+
+    let mut a1 = 6;
+    let b1 = &a1;
+    let b2 = &a1;
+    //let c1 = &mut a1; // not allowed as immutable b1 is still in scope
+    //*c1 = 66;
+    println!("{b1}")
+
+}
+fn loopArray() {
+    let mut numbers = Vec::new();
+    let x = 1;
+    numbers.push(x);
+    let y = 2;
+    numbers.push(y);
+    let z = 3;
+    numbers.push(3);
+    numbers.push(4);
+
+    for n in numbers {
+        println!("Number is: {n}");
+    }
+    /*println!("********");
+    for d in &numbers[0..] {
+        println!("Number is: {d}");  
+    }*/
+
+    let x1 = 42;
+    let y1 = Box::new(84);
+    println!("{x1}");
+    println!("{y1}");
+
+    { 
+        let z = (x1, y1);
+    }
+    
 }
 
 fn guessingGame() {
