@@ -9,10 +9,12 @@ use crate::collections::hashmapling::play_with_hashmap;
 use crate::collections::stringling::play_with_string;
 use crate::collections::vectorling::play_with_vectors;
 use crate::errors::panicky::panicking;
+use crate::generics::generics::play_with_generics;
 
 pub mod collections;
 pub mod parsing;
 mod errors;
+mod generics;
 
 fn main() {
     // guessingGame();
@@ -45,6 +47,8 @@ fn main() {
     play_with_hashmap();
     println!("**************play with panics**************");
     panicking();
+    println!("**************play with generics**************");
+    play_with_generics();
 }
 
 type Table = HashMap<String, Vec<String>>;
