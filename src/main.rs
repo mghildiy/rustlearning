@@ -9,12 +9,14 @@ use crate::collections::hashmapling::play_with_hashmap;
 use crate::collections::stringling::play_with_string;
 use crate::collections::vectorling::play_with_vectors;
 use crate::errors::panicky::panicking;
+use crate::exp::tools::{search_text, File};
 use crate::generics::generics::play_with_generics;
 
 pub mod collections;
 pub mod parsing;
 mod errors;
 mod generics;
+mod exp;
 
 fn main() {
     // guessingGame();
@@ -49,6 +51,32 @@ fn main() {
     panicking();
     println!("**************play with generics**************");
     play_with_generics();
+
+    println!("{:02}", 42);
+    let x: i8 = 4;
+    let y:i64 = 12244434;
+    if x > y as i8 {
+        println!("{} is greater than {}", x, y as i8);
+    }
+
+    let to_search = "square";
+    search_text(to_search);
+
+    let mut s = String::from("hello");
+    let mut slice = &mut s[..];
+    println!("length: {}",slice.len());
+    s.push_str(" world!");
+    println!("Updated: {}", s);
+
+    let mut file = File::from("f1.txt");
+    let file_name:&str = &file.name;
+    let file_size = file.data.len();
+    println!("File name and size(in bytes): {}, {}",file_name, file_size);
+    println!("File: {:?}", file);
+    file.set_data(vec![114, 117, 115, 116, 33]);
+    let mut read_into = Vec::<u8>::new();
+    let bytes_read = file.read(&mut read_into);
+    println!("Read into: {:?}, number of bytes: {}", read_into, bytes_read);
 }
 
 type Table = HashMap<String, Vec<String>>;

@@ -1,3 +1,5 @@
+use std::mem::uninitialized;
+
 pub fn play_with_generics() {
     let nums = vec![10, 20, 100, 40, 77];
     println!("Largest number is {}", largest(&nums));
@@ -38,4 +40,8 @@ impl<T: PartialEq, U:PartialEq> Point<T, U> {
     fn y(&self) -> &U {
         &self.y
     }
+}
+
+fn add<T: std::ops::Add<Output = T>>(i: T, j: T) -> T {
+    i+j
 }
