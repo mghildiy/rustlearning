@@ -9,8 +9,10 @@ use crate::collections::hashmapling::play_with_hashmap;
 use crate::collections::stringling::play_with_string;
 use crate::collections::vectorling::play_with_vectors;
 use crate::errors::panicky::panicking;
-use crate::exp::tools::{search_text, File};
+use crate::exp::tools;
+use crate::exp::tools::{search_text, File, open, close, check_status, CubeSat, PointCopy, PointClone, fetch_sat_ids, GroundStation, Mailbox};
 use crate::generics::generics::play_with_generics;
+use crate::parsing::Parser::Message;
 
 pub mod collections;
 pub mod parsing;
@@ -70,13 +72,63 @@ fn main() {
 
     let mut file = File::from("f1.txt");
     let file_name:&str = &file.name;
-    let file_size = file.data.len();
+    let file_size = file.len();
     println!("File name and size(in bytes): {}, {}",file_name, file_size);
     println!("File: {:?}", file);
     file.set_data(vec![114, 117, 115, 116, 33]);
     let mut read_into = Vec::<u8>::new();
-    let bytes_read = file.read(&mut read_into);
+    file = open(file).unwrap();
+    let bytes_read = file.read(&mut read_into).unwrap();
     println!("Read into: {:?}, number of bytes: {}", read_into, bytes_read);
+    println!("Text: {}", String::from_utf8_lossy(&*read_into));
+
+    let f4_data: Vec<u8> = vec![114, 117, 115, 116, 33];
+    let mut f4 = File::from_data("4.txt", &f4_data);
+    println!("File address: {:p}", &f4);
+    let mut buffer: Vec<u8> = vec![];
+    f4 = open(f4).unwrap();
+    println!("File address: {:p}", &f4);
+    let f4_length = f4.read(&mut buffer).unwrap();
+    f4 = close(f4).unwrap();
+    println!("File address: {:p}", &f4);
+
+    let mut f5 = File::from("f5.txt");
+    if f5.read(&mut buffer).is_err() {
+        println!("Error check works.");
+    }
+    f5 = open(f5).unwrap();
+    println!("File {:?}, state: {:?}", f5, f5.state);
+    buffer.clear();
+    let f5_length = f5.read(&mut buffer).unwrap();
+    f5  = close(f5).unwrap();
+    println!("File {}, state: {:?}", f5, f5.state);
+
+    let cpPoint = PointCopy{x: 10.0, y: 20.0};
+    let cpPoint_copy = cpPoint;
+    println!("Address: {:p}", &cpPoint);
+    println!("Address: {:p}", &cpPoint_copy);
+
+    let clPoint = PointClone{x: 10.0, y: 20.0};
+    let clPoint_clone = clPoint.clone();
+    println!("Address: {:p}", &clPoint);
+    println!("Address: {:p}", &clPoint_clone);
+
+    let sat_ids = fetch_sat_ids();
+    let base = GroundStation{};
+    let mut mailbox = Mailbox{messages: Vec::new()};
+    for sat_id in &sat_ids {
+        base.send(&mut mailbox, tools::Message::from(*sat_id, "Hello"))
+    }
+
+    for sat_id in sat_ids {
+        let mut sat = base.connect(sat_id);
+        let message = sat.recv(&mut mailbox).unwrap();
+        println!("Message from satellite: {:?}", message)
+    }
+}
+
+fn some_num() -> usize {
+    0
 }
 
 type Table = HashMap<String, Vec<String>>;
